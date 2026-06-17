@@ -7,6 +7,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { errorHandler } from './middlewares/errorHandler';
+import routes from './routes';
 
 const app: Express = express();
 
@@ -60,7 +61,13 @@ app.get('/', (req: Request, res: Response) => {
     status: 'operational',
     endpoints: {
       health: 'GET /health',
-      auth: 'POST /auth/register, POST /auth/login',
+      auth: 'POST /auth/register, POST /auth/login, GET /auth/me',
+      appointments: 'GET /appointments, GET /appointments/today, GET /appointments/:id, PATCH /appointments/:id/status',
+      salon: 'GET /salon/me, PUT /salon/me',
+      services: 'POST /services, GET /services, GET /services/:id, PUT /services/:id, DELETE /services/:id',
+      professionals: 'POST /professionals, GET /professionals, GET /professionals/:id, PUT /professionals/:id, DELETE /professionals/:id',
+      professionalServices: 'POST /professionals/:professionalId/services, GET /professionals/:professionalId/services, DELETE /professionals/:professionalId/services/:serviceId',
+      public: 'GET /public/:slug, GET /public/:slug/services, GET /public/:slug/professionals, POST /public/:slug/appointments',
       docs: 'GET /docs (futuro)',
     },
   });
@@ -78,6 +85,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // ============================================================================
+app.use(routes);
+
 // TRATAMENTO DE ROTAS NÃO ENCONTRADAS
 // ============================================================================
 
@@ -99,4 +108,5 @@ app.use((req: Request, res: Response) => {
 
 app.use(errorHandler);
 
+export { app };
 export default app;
