@@ -44,16 +44,22 @@ export const stripeProvider = {
   ): Promise<CreateCheckoutResponse> {
     const stripe = getStripe();
     const priceId = getPriceId(planId);
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3333';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const trialDays = Number(process.env.TRIAL_DAYS ?? 7);
+
+    if (Number.isInteger(trialDays) === false || trialDays < 1) {
+      throw new Error('TRIAL_DAYS deve ser um número inteiro maior que zero');
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/billing/cancel`,
+      success_url: `${frontendUrl}/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/billing?checkout=cancelled`,
       metadata: { salonId, planId },
       subscription_data: {
+        trial_period_days: trialDays,
         metadata: { salonId, planId },
       },
     });
@@ -70,7 +76,9 @@ export const stripeProvider = {
    */
   async cancelSubscription(providerSubscriptionId: string): Promise<CancelResponse> {
     const stripe = getStripe();
-    await stripe.subscriptions.cancel(providerSubscriptionId);
+    await stripe.subscriptions.update(providerSubscriptionId, {
+      cancel_at_period_end: true,
+    });
     return { success: true };
   },
 
