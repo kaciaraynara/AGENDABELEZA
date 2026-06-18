@@ -8,6 +8,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { errorHandler } from './middlewares/errorHandler';
 import routes from './routes';
+import { stripeWebhook } from './modules/billing/controllers/billing.controller';
 
 const app: Express = express();
 
@@ -43,6 +44,12 @@ app.use(
 // ============================================================================
 // PARSERS
 // ============================================================================
+
+app.post(
+  '/billing/webhook',
+  express.raw({ type: 'application/json' }),
+  stripeWebhook,
+);
 
 // JSON Parser
 app.use(express.json({ limit: '10mb' }));
