@@ -44,6 +44,16 @@ export class AuthRepository {
   }
 
   async createOwnerWithSalon(data: CreateOwnerWithSalonData) {
+    const trialDays = Number(process.env.TRIAL_DAYS ?? 7);
+
+    if (Number.isInteger(trialDays) === false || trialDays < 1) {
+      throw new Error('TRIAL_DAYS deve ser um número inteiro maior que zero');
+    }
+
+    const trialEndsAt = new Date(
+      Date.now() + trialDays * 24 * 60 * 60 * 1000,
+    );
+
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const user = await tx.user.create({
         data: {
@@ -68,6 +78,7 @@ export class AuthRepository {
           state: data.salon.state,
           zipCode: data.salon.zipCode,
           businessHours: data.salon.businessHours,
+          trialEndsAt,
         },
       });
 

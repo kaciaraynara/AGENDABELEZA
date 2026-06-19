@@ -22,7 +22,10 @@ export function useAuth() {
   async function login(email: string, password: string): Promise<void> {
     const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
     setAuth(data.token, data.user, data.salon);
-    router.push('/dashboard');
+    document.cookie =
+      '__ab_auth=1; path=/; max-age=604800; SameSite=Lax';
+    router.replace('/dashboard');
+    router.refresh();
   }
 
   /**
@@ -42,7 +45,10 @@ export function useAuth() {
   }): Promise<void> {
     const { data } = await api.post<AuthResponse>('/auth/register', payload);
     setAuth(data.token, data.user, data.salon);
-    router.push('/dashboard');
+    document.cookie =
+      '__ab_auth=1; path=/; max-age=604800; SameSite=Lax';
+    router.replace('/dashboard');
+    router.refresh();
   }
 
   /**
@@ -50,7 +56,10 @@ export function useAuth() {
    */
   function logout(): void {
     clearAuth();
-    router.push('/login');
+    document.cookie =
+      '__ab_auth=; path=/; max-age=0; SameSite=Lax';
+    router.replace('/login');
+    router.refresh();
   }
 
   /**

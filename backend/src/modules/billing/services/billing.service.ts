@@ -16,7 +16,7 @@ const plans: PlanDto[] = [
   {
     id: 'starter',
     name: 'Starter',
-    priceCents: 1990,
+    priceCents: 3990,
     description: 'Plano básico para salões iniciantes',
     features: [
       'Gestão de agenda',
@@ -29,7 +29,7 @@ const plans: PlanDto[] = [
   {
     id: 'professional',
     name: 'Professional',
-    priceCents: 3990,
+    priceCents: 6990,
     description: 'Plano completo com recursos avançados',
     features: [
       'Todas as funcionalidades do Starter',
@@ -146,7 +146,7 @@ export const billingService = {
         await prisma.salon.update({
           where: { id: salonId },
           data: {
-            subscriptionStatus: 'ACTIVE',
+            subscriptionStatus: 'TRIAL',
             isBlocked: false,
             currentPlan: planId ?? undefined,
             providerSubscriptionId: (session.subscription as string) ?? null,
@@ -157,19 +157,32 @@ export const billingService = {
         break;
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const sub = event.data.object;
         const salonId = sub.metadata?.salonId as string | undefined;
         if (!salonId) break;
 
-        const isActive = ['active', 'trialing'].includes(sub.status as string);
+        const stripeStatus = sub.status as string;
+        const isTrialing = stripeStatus === 'trialing';
+        const isActive = stripeStatus === 'active';
+        const hasAccess = isTrialing || isActive;
         const periodEnd = new Date((sub.current_period_end as number) * 1000);
+        const trialEndsAt =
+          typeof sub.trial_end === 'number'
+            ? new Date(sub.trial_end * 1000)
+            : null;
 
         await prisma.salon.update({
           where: { id: salonId },
           data: {
-            subscriptionStatus: isActive ? 'ACTIVE' : 'CANCELED',
-            isBlocked: !isActive,
+            subscriptionStatus: isTrialing
+              ? 'TRIAL'
+              : isActive
+                ? 'ACTIVE'
+                : 'CANCELED',
+            isBlocked: !hasAccess,
+            trialEndsAt,
             subscriptionEndsAt: periodEnd,
             providerSubscriptionId: sub.id as string,
           },
@@ -201,7 +214,6 @@ export const billingService = {
         await prisma.salon.updateMany({
           where: { providerSubscriptionId: subId },
           data: {
-            subscriptionStatus: 'ACTIVE',
             isBlocked: false,
           },
         });

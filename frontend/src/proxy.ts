@@ -13,6 +13,7 @@ const PROTECTED_PATHS = [
   '/agendamentos',
   '/servicos',
   '/profissionais',
+  '/billing',
 ];
 
 // Rotas que só devem ser acessadas sem autenticação

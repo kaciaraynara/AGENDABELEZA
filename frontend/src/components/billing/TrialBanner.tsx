@@ -17,8 +17,11 @@ interface TrialBannerProps {
 export function TrialBanner({ status, compact = false }: TrialBannerProps) {
   if (status.subscriptionStatus !== 'TRIAL') return null;
 
+  const hasTrialDate =
+    status.trialEndsAt !== null &&
+    status.daysRemainingInTrial !== undefined;
   const days = status.daysRemainingInTrial ?? 0;
-  const isUrgent = days <= 3;
+  const isUrgent = hasTrialDate && days <= 3;
 
   if (compact) {
     return (
@@ -66,7 +69,7 @@ export function TrialBanner({ status, compact = false }: TrialBannerProps) {
           </div>
           <div>
             <p className={`font-semibold text-sm ${isUrgent ? 'text-red-800' : 'text-amber-800'}`}>
-              {isUrgent ? '⚠️ Trial expirando em breve!' : '✨ Período de trial ativo'}
+              {hasTrialDate && isUrgent ? 'Trial expirando em breve!' : 'Período de trial ativo'}
             </p>
             <p className={`text-xs mt-0.5 ${isUrgent ? 'text-red-600' : 'text-amber-600'}`}>
               {days > 0
