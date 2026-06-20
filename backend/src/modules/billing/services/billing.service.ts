@@ -1,6 +1,6 @@
 // src/modules/billing/services/billing.service.ts
 
-import { PaymentProvider } from '@prisma/client';
+import { PaymentProvider, SubscriptionStatus } from '@prisma/client';
 import { prisma } from '../../../config/prisma';
 import { billingProvider, stripeProvider } from '../providers';
 import { AppError } from '../../../shared/errors/AppError';
@@ -89,6 +89,20 @@ export const billingService = {
 
     const salon = await prisma.salon.findUnique({ where: { id: salonId } });
     if (!salon) throw new AppError('SALON_NOT_FOUND', 404);
+
+    const blockingStatuses = new Set<SubscriptionStatus>([
+      SubscriptionStatus.TRIAL,
+      SubscriptionStatus.ACTIVE,
+      SubscriptionStatus.PAST_DUE,
+    ]);
+
+    const hasExistingSubscription =
+      Boolean(salon.providerSubscriptionId) &&
+      blockingStatuses.has(salon.subscriptionStatus);
+
+    if (hasExistingSubscription) {
+      throw new AppError('ALREADY_SUBSCRIBED', 409);
+    }
 
     const providerResponse = await billingProvider.createCheckout(
       salonId,
