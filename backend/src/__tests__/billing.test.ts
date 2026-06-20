@@ -165,6 +165,46 @@ describe('Billing — POST /billing/create-checkout', () => {
   });
 });
 
+describe('Billing — proteção contra assinatura duplicada', () => {
+  it('deve retornar 409 e não chamar o provider quando já existe assinatura', async () => {
+    const { billingProvider } = jest.requireMock(
+      '../modules/billing/providers',
+    ) as {
+      billingProvider: {
+        createCheckout: jest.Mock;
+      };
+    };
+
+    billingProvider.createCheckout.mockClear();
+
+    await prisma.salon.update({
+      where: { id: salonId },
+      data: {
+        subscriptionStatus: 'TRIAL',
+        providerSubscriptionId: 'sub_existing_test',
+      },
+    });
+
+    try {
+      const res = await request(app)
+        .post('/billing/create-checkout')
+        .set(bearer(ownerAuthToken))
+        .send({ planId: 'professional' });
+
+      expect(res.status).toBe(409);
+      expect(billingProvider.createCheckout).not.toHaveBeenCalled();
+    } finally {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          subscriptionStatus: 'TRIAL',
+          providerSubscriptionId: null,
+        },
+      });
+    }
+  });
+});
+
 describe('Billing — POST /billing/cancel', () => {
   it('deve retornar 401 sem token', async () => {
     const res = await request(app).post('/billing/cancel');
