@@ -20,16 +20,8 @@ import { prisma } from '../config/prisma';
 import { ownerToken, professionalToken } from './helpers/auth.helper';
 
 // ─── Mock do provider de billing (Stripe) ─────────────────────────────────────
-jest.mock('../modules/billing/providers', () => ({
-  billingProvider: {
-    createCheckout: jest.fn().mockResolvedValue({
-      checkoutUrl: 'https://checkout.stripe.com/pay/mock_session_id',
-      providerSubscriptionId: undefined,
-      providerCustomerId: 'cus_mock123',
-    }),
-    cancelSubscription: jest.fn().mockResolvedValue({ success: true }),
-  },
-  stripeProvider: {
+jest.mock('../modules/billing/providers', () => {
+  const stripeProvider = {
     createCheckout: jest.fn().mockResolvedValue({
       checkoutUrl: 'https://checkout.stripe.com/pay/mock_session_id',
       providerSubscriptionId: undefined,
@@ -39,8 +31,29 @@ jest.mock('../modules/billing/providers', () => ({
     constructWebhookEvent: jest.fn().mockImplementation((rawBody: Buffer) => {
       return JSON.parse(rawBody.toString());
     }),
-  },
-}));
+  };
+
+  const asaasProvider = {
+    createCheckout: jest.fn().mockResolvedValue({
+      checkoutUrl: 'https://asaas.com/checkout/mock_session_id',
+      providerSubscriptionId: 'sub_asaas_mock',
+      providerCustomerId: 'cus_asaas_mock',
+    }),
+    cancelSubscription: jest.fn().mockResolvedValue({ success: true }),
+  };
+
+  return {
+    billingProvider: stripeProvider,
+    stripeProvider,
+    asaasProvider,
+    getBillingProvider: jest.fn(
+      (paymentProvider?: string | null) =>
+        paymentProvider === 'ASAAS'
+          ? asaasProvider
+          : stripeProvider,
+    ),
+  };
+});
 
 // ─── Dados de teste ────────────────────────────────────────────────────────────
 const SUFFIX = `_billing_${Date.now()}`;
@@ -217,6 +230,121 @@ describe('Billing — POST /billing/cancel', () => {
       .post('/billing/cancel')
       .set(bearer(ownerAuthToken));
     expect(res.status).toBe(400);
+  });
+  it('deve manter acesso ao solicitar cancelamento no Stripe', async () => {
+    const {
+      stripeProvider,
+      asaasProvider,
+    } = jest.requireMock('../modules/billing/providers') as {
+      stripeProvider: {
+        cancelSubscription: jest.Mock;
+      };
+      asaasProvider: {
+        cancelSubscription: jest.Mock;
+      };
+    };
+
+    stripeProvider.cancelSubscription.mockClear();
+    asaasProvider.cancelSubscription.mockClear();
+
+    await prisma.salon.update({
+      where: { id: salonId },
+      data: {
+        paymentProvider: 'STRIPE',
+        subscriptionStatus: 'TRIAL',
+        providerSubscriptionId: 'sub_stripe_existing',
+        isBlocked: false,
+      },
+    });
+
+    try {
+      const res = await request(app)
+        .post('/billing/cancel')
+        .set(bearer(ownerAuthToken));
+
+      expect(res.status).toBe(200);
+      expect(stripeProvider.cancelSubscription).toHaveBeenCalledWith(
+        'sub_stripe_existing',
+      );
+      expect(asaasProvider.cancelSubscription).not.toHaveBeenCalled();
+
+      const salon = await prisma.salon.findUnique({
+        where: { id: salonId },
+      });
+
+      expect(salon?.subscriptionStatus).toBe('TRIAL');
+      expect(salon?.isBlocked).toBe(false);
+      expect(salon?.providerSubscriptionId).toBe(
+        'sub_stripe_existing',
+      );
+    } finally {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          paymentProvider: null,
+          subscriptionStatus: 'TRIAL',
+          providerSubscriptionId: null,
+          isBlocked: false,
+        },
+      });
+    }
+  });
+
+  it('deve bloquear imediatamente após cancelamento no Asaas', async () => {
+    const {
+      stripeProvider,
+      asaasProvider,
+    } = jest.requireMock('../modules/billing/providers') as {
+      stripeProvider: {
+        cancelSubscription: jest.Mock;
+      };
+      asaasProvider: {
+        cancelSubscription: jest.Mock;
+      };
+    };
+
+    stripeProvider.cancelSubscription.mockClear();
+    asaasProvider.cancelSubscription.mockClear();
+
+    await prisma.salon.update({
+      where: { id: salonId },
+      data: {
+        paymentProvider: 'ASAAS',
+        subscriptionStatus: 'ACTIVE',
+        providerSubscriptionId: 'sub_asaas_existing',
+        isBlocked: false,
+      },
+    });
+
+    try {
+      const res = await request(app)
+        .post('/billing/cancel')
+        .set(bearer(ownerAuthToken));
+
+      expect(res.status).toBe(200);
+      expect(asaasProvider.cancelSubscription).toHaveBeenCalledWith(
+        'sub_asaas_existing',
+      );
+      expect(stripeProvider.cancelSubscription).not.toHaveBeenCalled();
+
+      const salon = await prisma.salon.findUnique({
+        where: { id: salonId },
+      });
+
+      expect(salon?.subscriptionStatus).toBe('CANCELED');
+      expect(salon?.isBlocked).toBe(true);
+      expect(salon?.providerSubscriptionId).toBeNull();
+    } finally {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          paymentProvider: null,
+          subscriptionStatus: 'TRIAL',
+          providerSubscriptionId: null,
+          isBlocked: false,
+        },
+      });
+    }
   });
 });
 
