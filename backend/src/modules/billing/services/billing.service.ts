@@ -2,7 +2,11 @@
 
 import { PaymentProvider, SubscriptionStatus } from '@prisma/client';
 import { prisma } from '../../../config/prisma';
-import { billingProvider, stripeProvider } from '../providers';
+import {
+  billingProvider,
+  getBillingProvider,
+  stripeProvider,
+} from '../providers';
 import { AppError } from '../../../shared/errors/AppError';
 import {
   BillingStatusDto,
@@ -128,17 +132,36 @@ export const billingService = {
   async cancelSubscription(salonId: string): Promise<CancelResponse> {
     const salon = await prisma.salon.findUnique({ where: { id: salonId } });
     if (!salon) throw new AppError('SALON_NOT_FOUND', 404);
-    if (!salon.providerSubscriptionId) throw new AppError('NO_ACTIVE_SUBSCRIPTION', 400);
+    if (!salon.providerSubscriptionId) {
+      throw new AppError('NO_ACTIVE_SUBSCRIPTION', 400);
+    }
 
-    await billingProvider.cancelSubscription(salon.providerSubscriptionId);
+    const paymentProvider =
+      salon.paymentProvider ?? getActiveProvider();
 
-    await prisma.salon.update({
-      where: { id: salonId },
-      data: {
-        subscriptionStatus: 'CANCELED',
-        isBlocked: true,
-      },
-    });
+    const provider = getBillingProvider(paymentProvider);
+
+    await provider.cancelSubscription(
+      salon.providerSubscriptionId,
+    );
+
+    if (paymentProvider === PaymentProvider.ASAAS) {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          subscriptionStatus: 'CANCELED',
+          isBlocked: true,
+          providerSubscriptionId: null,
+        },
+      });
+    } else {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          isBlocked: false,
+        },
+      });
+    }
 
     return { success: true } as CancelResponse;
   },
