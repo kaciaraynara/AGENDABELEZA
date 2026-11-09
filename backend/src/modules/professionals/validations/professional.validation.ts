@@ -25,6 +25,7 @@ export const createProfessionalSchema = z
     phone: phoneSchema,
     bio: bioSchema,
     active: z.boolean().optional(),
+    avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   })
   .strict();
 
@@ -34,6 +35,7 @@ export const updateProfessionalSchema = z
     phone: phoneSchema.optional(),
     bio: bioSchema,
     active: z.boolean().optional(),
+    avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   })
   .strict()
   .refine(data => Object.keys(data).length > 0, {

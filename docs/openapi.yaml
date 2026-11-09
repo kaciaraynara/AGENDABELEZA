@@ -1,0 +1,291 @@
+openapi: 3.1.0
+info:
+  title: AgendaBeleza API
+  version: 0.1.0
+  description: |
+    EspecificaÃ§Ã£o OpenAPI 3.1 dos endpoints principais do SaaS **AgendaBeleza**, cobrindo verificaÃ§Ã£o de saÃºde, mÃ©tricas Prometheus, vitrine pÃºblica do salÃ£o, agendamento online e gestÃ£o interna de agendamentos e assinaturas.
+  contact:
+    name: Raynara KÃ¡cia MagalhÃ£es Fonteles
+servers:
+  - url: http://localhost:3333
+    description: Ambiente Local / Docker Compose
+
+tags:
+  - name: Health & Observability
+    description: Monitoramento de disponibilidade e mÃ©tricas operacionais
+  - name: Public Booking
+    description: Fluxo principal de consulta pÃºblica do salÃ£o e criaÃ§Ã£o de agendamento
+  - name: Appointments
+    description: GestÃ£o de agendamentos pelo painel do salÃ£o
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health & Observability
+      summary: Verifica a saÃºde e o tempo de atividade da API
+      operationId: getHealth
+      responses:
+        '200':
+          description: API operacional
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /metrics:
+    get:
+      tags:
+        - Health & Observability
+      summary: ExpÃµe mÃ©tricas operacionais e de latÃªncia no formato Prometheus
+      operationId: getMetrics
+      responses:
+        '200':
+          description: MÃ©tricas Prometheus em texto plano
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /public/{slug}:
+    get:
+      tags:
+        - Public Booking
+      summary: ObtÃ©m os dados pÃºblicos de um salÃ£o pelo slug
+      operationId: getPublicSalonBySlug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: salao-das-flores
+      responses:
+        '200':
+          description: Dados pÃºblicos do salÃ£o retornados com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicSalon'
+        '404':
+          description: SalÃ£o nÃ£o encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /public/{slug}/services:
+    get:
+      tags:
+        - Public Booking
+      summary: Lista os serviÃ§os ativos disponÃ­veis para agendamento pÃºblico no salÃ£o
+      operationId: listPublicSalonServices
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: salao-das-flores
+      responses:
+        '200':
+          description: Lista de serviÃ§os do salÃ£o
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceItem'
+
+  /public/{slug}/appointments:
+    post:
+      tags:
+        - Public Booking
+      summary: Cria um novo agendamento online atravÃ©s da pÃ¡gina pÃºblica do salÃ£o
+      operationId: createPublicAppointment
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          example: salao-das-flores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePublicAppointmentRequest'
+      responses:
+        '201':
+          description: Agendamento criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400':
+          description: Erro de validaÃ§Ã£o nos dados enviados ou conflito de horÃ¡rio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /appointments/today:
+    get:
+      tags:
+        - Appointments
+      summary: Lista os agendamentos do dia para o salÃ£o autenticado
+      operationId: getTodayAppointments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de agendamentos de hoje (pendentes, confirmados e concluÃ­dos)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentResponse'
+        '401':
+          description: NÃ£o autenticado
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - app
+        - timestamp
+        - uptime
+      properties:
+        status:
+          type: string
+          example: ok
+        app:
+          type: string
+          example: AgendaBeleza API
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: number
+          example: 142.58
+        environment:
+          type: string
+          example: development
+
+    PublicSalon:
+      type: object
+      required:
+        - id
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: SalÃ£o das Flores
+        slug:
+          type: string
+          example: salao-das-flores
+        phone:
+          type: string
+          example: "88999435418"
+        address:
+          type: string
+          example: Av. Principal, 100 - Centro
+
+    ServiceItem:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - durationMinutes
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Corte e Escova
+        price:
+          type: number
+          example: 80.0
+        durationMinutes:
+          type: integer
+          example: 60
+
+    CreatePublicAppointmentRequest:
+      type: object
+      required:
+        - clientName
+        - clientPhone
+        - serviceId
+        - professionalId
+        - date
+      properties:
+        clientName:
+          type: string
+          minLength: 2
+          example: Maria Silva
+        clientPhone:
+          type: string
+          example: "88999990000"
+        serviceId:
+          type: string
+          format: uuid
+        professionalId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date-time
+          example: "2026-11-12T14:00:00.000Z"
+
+    AppointmentResponse:
+      type: object
+      required:
+        - id
+        - status
+        - date
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+          example: Maria Silva
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, COMPLETED, CANCELED]
+          example: PENDING
+        date:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            name:
+              type: string
+              example: NotFound
+            message:
+              type: string
+              example: Recurso nÃ£o encontrado
+            code:
+              type: string
+              example: ROUTE_NOT_FOUND

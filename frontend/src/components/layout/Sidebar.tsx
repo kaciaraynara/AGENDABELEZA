@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 import {
   Calendar,
@@ -14,7 +15,7 @@ import {
 
 const links = [
   {
-    label: 'Dashboard',
+    label: 'Página Inicial',
     href: '/dashboard',
     icon: LayoutDashboard,
   },
@@ -35,6 +36,11 @@ const links = [
   },
   {
     label: 'Meu Salão',
+    href: '/meu-salao',
+    icon: Store,
+  },
+  {
+    label: 'Página Pública',
     href: '/salao',
     icon: Store,
   },
@@ -59,13 +65,19 @@ export function Sidebar() {
       <nav className="p-4 space-y-2">
         {links.map((link) => {
           const Icon = link.icon;
+          const { salon } = useAuth();
+          
+          let href = link.href;
+          if (link.label === 'Página Pública' && salon?.slug) {
+            href = `/salao/${salon.slug}`;
+          }
 
           const active = pathname.includes(link.href);
 
           return (
             <Link
               key={link.href}
-              href={link.href}
+              href={href}
               className={`
                 flex items-center gap-3 rounded-xl px-4 py-3
                 transition-all duration-200

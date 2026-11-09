@@ -1,0 +1,7 @@
+# Contribuidores e Autoria (CONTRIBUTORS)
+
+Projeto desenvolvido de forma **individual** para a entrega final do MÃ³dulo 4 ([Encontro 24 â€“ Projeto Final](https://henriquelopeslima.github.io/diglass/aulas/24-projeto-final.html#/a-nota-%C3%A9-individual)).
+
+| Autora | GitHub | Papel | Entregas Realizadas (M1 a M4) |
+| :--- | :--- | :--- | :--- |
+| **Raynara KÃ¡cia MagalhÃ£es Fonteles** | [@kaciaraynara](https://github.com/kaciaraynara) | Engenheira de Software Full Stack (Individual) | **M1:** ContainerizaÃ§Ã£o (`docker-compose.yml` e `Dockerfile`), arquitetura modular em camadas, *Repository Pattern* com Prisma/PostgreSQL e *Strategy Pattern* no mÃ³dulo de Billing (`mercadoPagoProvider`).<br>**M2:** Testes automatizados de unidade e integraÃ§Ã£o com Jest e Supertest (`billing.test.ts`), script de lint e configuraÃ§Ã£o de coverage.<br>**M3:** Pipeline de CI no GitHub Actions (`.github/workflows/ci.yml`), gestÃ£o de segredos via `.env.example`, logs estruturados com `pino` e endpoint de mÃ©tricas Prometheus (`/metrics` com `prom-client`) + SLO definido.<br>**M4:** DocumentaÃ§Ã£o tÃ©cnica completa (`README.md`, ADR 0001 no padrÃ£o MADR, diagrama C4 em Mermaid, especificaÃ§Ã£o `openapi.yaml`, `docs/ia.md` e ensaio de carga `k6` com anÃ¡lise de latÃªncia `p95` em `docs/desempenho.md`). |

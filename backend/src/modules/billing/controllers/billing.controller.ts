@@ -2,7 +2,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { billingService } from '../services/billing.service';
-import { stripeProvider } from '../providers';
 import { AppError } from '../../../shared/errors/AppError';
 
 export const getPlans = (_req: Request, res: Response, next: NextFunction): void => {
@@ -49,23 +48,20 @@ export const cancelSubscription = async (req: Request, res: Response, next: Next
   }
 };
 
-/**
- * POST /billing/webhook
- * Recebe eventos do Stripe e atualiza o status da assinatura.
- * Requer raw body (buffer) para validação da assinatura.
- */
-export const stripeWebhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const handleMercadoPagoWebhook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const sig = req.headers['stripe-signature'] as string;
-    // rawBody precisa ser Buffer (configurado no router com express.raw)
-    const rawBody = req.body as Buffer;
+    // Retornamos 200 rápido para o Mercado Pago não reenviar
+    res.status(200).send('OK');
 
-    const event = stripeProvider.constructWebhookEvent(rawBody, sig);
-    await billingService.handleWebhook(event);
+    const topic = req.query.topic || req.body.type;
+    const id = req.query.id || req.body.data?.id;
 
-    res.sendStatus(200);
-  } catch (err: any) {
-    // Retorna 400 se assinatura inválida
-    next(new AppError(err.message ?? 'WEBHOOK_ERROR', 400));
+    if (id) {
+      // Processa o webhook no background (sem travar a resposta)
+      await billingService.processWebhook(topic as string, id as string).catch(console.error);
+    }
+  } catch (err) {
+    console.error('Webhook Error:', err);
   }
 };
+

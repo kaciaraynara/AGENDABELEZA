@@ -13,6 +13,7 @@ const publicSalonSelect = {
   city: true,
   state: true,
   businessHours: true,
+  avatarUrl: true,
 } satisfies Prisma.SalonSelect;
 
 const publicServiceSelect = {
@@ -22,12 +23,14 @@ const publicServiceSelect = {
   category: true,
   price: true,
   durationMinutes: true,
+  imageUrl: true,
 } satisfies Prisma.ServiceSelect;
 
 const publicProfessionalSelect = {
   id: true,
   name: true,
   bio: true,
+  avatarUrl: true,
 } satisfies Prisma.ProfessionalSelect;
 
 const publicClientSelect = {
@@ -157,10 +160,23 @@ export class PublicRepository {
     });
   }
 
+  async findAppointmentBySalonAndScheduledAtWithoutProfessional(salonId: string, scheduledAt: Date) {
+    return prisma.appointment.findFirst({
+      where: {
+        salonId,
+        scheduledAt,
+        professionalId: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
   async createAppointmentWithClient(
     salon: PublicSalon,
     service: PublicService,
-    professional: PublicProfessional,
+    professional: PublicProfessional | null,
     data: CreatePublicAppointmentInput
   ) {
     return prisma.$transaction(async tx => {
@@ -185,7 +201,7 @@ export class PublicRepository {
         data: {
           salonId: salon.id,
           clientId: client.id,
-          professionalId: professional.id,
+          professionalId: professional ? professional.id : null,
           serviceId: service.id,
           scheduledAt: data.scheduledAt,
           status: AppointmentStatus.PENDING,

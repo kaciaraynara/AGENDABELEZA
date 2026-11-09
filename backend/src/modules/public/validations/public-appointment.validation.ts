@@ -32,7 +32,7 @@ export const createPublicAppointmentSchema = z
     clientPhone: requiredText('Telefone do cliente'),
     clientEmail: emailSchema,
     serviceId: requiredText('Serviço'),
-    professionalId: requiredText('Profissional'),
+    professionalId: optionalText,
     scheduledAt: scheduledAtSchema,
     notes: optionalText,
   })

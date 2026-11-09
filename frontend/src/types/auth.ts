@@ -26,6 +26,7 @@ export interface Salon {
   state: string | null;
   zipCode: string | null;
   businessHours: string | null;
+  avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -14,6 +14,8 @@ export interface UpdateSalonPayload {
   city?: string;
   state?: string;
   zipCode?: string;
+  businessHours?: string;
+  avatarUrl?: string;
 }
 
 export const salonApi = {

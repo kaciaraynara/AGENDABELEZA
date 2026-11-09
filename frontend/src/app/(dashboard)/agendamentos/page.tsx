@@ -196,7 +196,7 @@ function AppointmentRow({
         {appt.service.name}
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">
-        {appt.professional.name}
+        {appt.professional?.name || '-'}
       </td>
       <td className="px-4 py-3 text-sm">
         <div>{date}</div>
@@ -206,6 +206,21 @@ function AppointmentRow({
         <button onClick={() => onStatusClick(appt)} className="hover:opacity-80 transition-opacity">
           <StatusBadge status={appt.status} />
         </button>
+      </td>
+      <td className="px-4 py-3 text-right">
+        {appt.client.phone && (
+          <a
+            href={`https://wa.me/55${appt.client.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
+              `Olá ${appt.client.name.split(' ')[0]}, seu horário para ${appt.service.name} amanhã às ${time} está confirmado!`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10 text-green-600 hover:bg-green-500/20 transition-colors"
+            title="Enviar mensagem via WhatsApp"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="css-i6dzq1"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+          </a>
+        )}
       </td>
     </tr>
   );
@@ -234,6 +249,9 @@ function TableSkeleton() {
           </td>
           <td className="px-4 py-3">
             <Skeleton className="h-5 w-20" />
+          </td>
+          <td className="px-4 py-3 text-right">
+            <Skeleton className="h-8 w-8 rounded-full ml-auto" />
           </td>
         </tr>
       ))}
@@ -285,6 +303,9 @@ export default function AgendamentosPage() {
               <th className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Status
               </th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Ações
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -292,7 +313,7 @@ export default function AgendamentosPage() {
               <TableSkeleton />
             ) : appointments.length === 0 ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <EmptyState
                     title="Nenhum agendamento encontrado"
                     description={

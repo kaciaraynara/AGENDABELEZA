@@ -34,7 +34,7 @@ export function useBillingStatus() {
   });
 }
 
-/** Inicia o checkout Stripe e redireciona para a URL de pagamento */
+/** Inicia o checkout no MercadoPago e redireciona para a URL de pagamento */
 export function useCreateCheckout() {
   return useMutation({
     mutationFn: (payload: CreateCheckoutPayload) =>

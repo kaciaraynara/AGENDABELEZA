@@ -42,6 +42,7 @@ export interface AppointmentProfessional {
   name: string;
   phone: string;
   bio: string | null;
+  avatarUrl: string | null;
 }
 
 export interface AppointmentService {
@@ -51,12 +52,14 @@ export interface AppointmentService {
   category: string;
   price: string; // Decimal vem como string do Prisma
   durationMinutes: number;
+  imageUrl: string | null;
 }
 
 export interface AppointmentSalon {
   id: string;
   name: string;
   slug: string;
+  avatarUrl: string | null;
 }
 
 export interface Appointment {
@@ -103,6 +106,7 @@ export interface Service {
   category: ServiceCategory;
   price: string;
   durationMinutes: number;
+  imageUrl: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -124,6 +128,7 @@ export interface Professional {
   name: string;
   phone: string;
   bio: string | null;
+  avatarUrl: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -155,6 +160,7 @@ export interface PublicSalonData {
   address: string | null;
   city: string | null;
   state: string | null;
+  avatarUrl: string | null;
 }
 
 export interface PublicSalonResponse {

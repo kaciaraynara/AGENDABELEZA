@@ -86,7 +86,7 @@ export default function BillingPage() {
         <GuaranteeCard
           icon={<Shield size={18} />}
           title="Pagamento 100% seguro"
-          description="Todos os pagamentos são processados pelo Stripe com criptografia SSL. Não armazenamos dados do cartão."
+          description="Todos os pagamentos são processados pelo Mercado Pago com criptografia de ponta a ponta. Não armazenamos dados do cartão."
         />
         <GuaranteeCard
           icon={<LifeBuoy size={18} />}
@@ -136,7 +136,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Como funciona a cobrança?',
-    a: 'A cobrança é mensal, realizada via cartão de crédito através do Stripe. Você recebe um e-mail com a nota fiscal.',
+    a: 'A cobrança é mensal, realizada via cartão de crédito, PIX ou saldo através do Mercado Pago. Você recebe um e-mail com a confirmação.',
   },
   {
     q: 'Posso mudar de plano?',

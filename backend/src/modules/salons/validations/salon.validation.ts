@@ -52,6 +52,7 @@ export const updateSalonSchema = z
     state: optionalText,
     zipCode: optionalText,
     businessHours: optionalLongText,
+    avatarUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   })
   .strict()
   .refine(data => Object.keys(data).length > 0, {

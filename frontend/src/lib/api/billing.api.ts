@@ -1,5 +1,5 @@
 /**
- * Billing API — Stripe / Assinatura
+ * Billing API — Mercado Pago / Assinatura
  * Consome os endpoints de billing do backend.
  */
 

@@ -11,7 +11,7 @@ export interface CreatePublicAppointmentPayload {
   clientName: string;
   clientPhone: string;
   clientEmail?: string;
-  professionalId: string;
+  professionalId?: string;
   serviceId: string;
   scheduledAt: string;
   notes?: string;

@@ -110,7 +110,7 @@ describe('Billing — GET /billing/plans', () => {
     const res = await request(app).get('/billing/plans');
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThanOrEqual(2);
+    expect(res.body.length).toBeGreaterThanOrEqual(1);
     expect(res.body[0]).toHaveProperty('id');
     expect(res.body[0]).toHaveProperty('priceCents');
     expect(res.body[0]).toHaveProperty('features');
@@ -138,7 +138,7 @@ describe('Billing — POST /billing/create-checkout', () => {
   it('deve retornar 401 sem token', async () => {
     const res = await request(app)
       .post('/billing/create-checkout')
-      .send({ planId: 'starter' });
+      .send({ planId: 'premium' });
     expect(res.status).toBe(401);
   });
 
@@ -154,25 +154,15 @@ describe('Billing — POST /billing/create-checkout', () => {
     const res = await request(app)
       .post('/billing/create-checkout')
       .set(bearer(profAuthToken))
-      .send({ planId: 'starter' });
+      .send({ planId: 'premium' });
     expect(res.status).toBe(403);
   });
 
-  it('deve retornar 200 com checkoutUrl para planId=starter', async () => {
+  it('deve retornar 200 com checkoutUrl para planId=premium', async () => {
     const res = await request(app)
       .post('/billing/create-checkout')
       .set(bearer(ownerAuthToken))
-      .send({ planId: 'starter' });
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('checkoutUrl');
-    expect(res.body.checkoutUrl).toContain('stripe.com');
-  });
-
-  it('deve retornar 200 com checkoutUrl para planId=professional', async () => {
-    const res = await request(app)
-      .post('/billing/create-checkout')
-      .set(bearer(ownerAuthToken))
-      .send({ planId: 'professional' });
+      .send({ planId: 'premium' });
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('checkoutUrl');
   });
@@ -202,7 +192,7 @@ describe('Billing — proteção contra assinatura duplicada', () => {
       const res = await request(app)
         .post('/billing/create-checkout')
         .set(bearer(ownerAuthToken))
-        .send({ planId: 'professional' });
+        .send({ planId: 'premium' });
 
       expect(res.status).toBe(409);
       expect(billingProvider.createCheckout).not.toHaveBeenCalled();
@@ -250,9 +240,9 @@ describe('Billing — POST /billing/cancel', () => {
     await prisma.salon.update({
       where: { id: salonId },
       data: {
-        paymentProvider: 'STRIPE',
+        paymentProvider: 'MERCADOPAGO',
         subscriptionStatus: 'TRIAL',
-        providerSubscriptionId: 'sub_stripe_existing',
+        providerSubscriptionId: 'sub_mp_existing',
         isBlocked: false,
       },
     });
@@ -264,7 +254,7 @@ describe('Billing — POST /billing/cancel', () => {
 
       expect(res.status).toBe(200);
       expect(stripeProvider.cancelSubscription).toHaveBeenCalledWith(
-        'sub_stripe_existing',
+        'sub_mp_existing',
       );
       expect(asaasProvider.cancelSubscription).not.toHaveBeenCalled();
 
@@ -275,7 +265,7 @@ describe('Billing — POST /billing/cancel', () => {
       expect(salon?.subscriptionStatus).toBe('TRIAL');
       expect(salon?.isBlocked).toBe(false);
       expect(salon?.providerSubscriptionId).toBe(
-        'sub_stripe_existing',
+        'sub_mp_existing',
       );
     } finally {
       await prisma.salon.update({
@@ -348,47 +338,4 @@ describe('Billing — POST /billing/cancel', () => {
   });
 });
 
-describe('Billing — POST /billing/webhook', () => {
-  it('deve retornar 200 para evento checkout.session.completed mockado', async () => {
-    const mockEvent = {
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          metadata: { salonId, planId: 'starter' },
-          subscription: 'sub_mock123',
-          customer: 'cus_mock123',
-        },
-      },
-    };
-
-    const rawBody = JSON.stringify(mockEvent);
-
-    const res = await request(app)
-      .post('/billing/webhook')
-      // Envia como octet-stream para forçar o raw body parser a processar
-      .set('Content-Type', 'application/octet-stream')
-      .set('stripe-signature', 'mock-sig')
-      .send(Buffer.from(rawBody));
-
-    // Em NODE_ENV=test, constructWebhookEvent faz JSON.parse do rawBody
-    // e handleWebhook processa o evento
-    expect([200, 400]).toContain(res.status);
-  });
-
-  it('deve retornar 200 via mock direto do serviço', async () => {
-    // Teste alternativo: valida que o handleWebhook processa sem erros
-    const { billingService } = await import('../modules/billing/services/billing.service');
-    await expect(
-      billingService.handleWebhook({
-        type: 'checkout.session.completed',
-        data: {
-          object: {
-            metadata: { salonId, planId: 'starter' },
-            subscription: 'sub_mock456',
-            customer: 'cus_mock456',
-          },
-        },
-      }),
-    ).resolves.toBeUndefined();
-  });
-});
+// Testes de webhook foram movidos para src/modules/billing/__tests__/billing.test.ts

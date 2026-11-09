@@ -68,6 +68,7 @@ const serviceSchema = z.object({
     .int()
     .min(5, 'Mínimo 5 minutos')
     .max(480, 'Máximo 480 minutos'),
+  imageUrl: z.string().url('Deve ser um URL válido').or(z.literal('')).optional(),
 });
 
 type ServiceFormInput = z.input<typeof serviceSchema>;
@@ -102,6 +103,7 @@ function ServiceDialog({ service, open, onClose }: ServiceDialogProps) {
           category: service.category,
           price: String(parseFloat(service.price).toFixed(2)).replace('.', ','),
           durationMinutes: service.durationMinutes,
+          imageUrl: service.imageUrl ?? '',
         }
       : {},
   });
@@ -115,6 +117,7 @@ function ServiceDialog({ service, open, onClose }: ServiceDialogProps) {
       category: data.category,
       price: Number(data.price.replace(',', '.')),
       durationMinutes: data.durationMinutes,
+      imageUrl: data.imageUrl || undefined,
     };
 
     if (service) {
@@ -174,6 +177,12 @@ function ServiceDialog({ service, open, onClose }: ServiceDialogProps) {
             <Input id="s-desc" placeholder="Descrição do serviço..." {...register('description')} />
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="s-image">URL da Foto (opcional)</Label>
+            <Input id="s-image" placeholder="https://exemplo.com/foto.jpg" {...register('imageUrl')} />
+            {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
+          </div>
+
           <DialogFooter>
             <Button variant="outline" size="sm" type="button" onClick={() => { reset(); onClose(); }} disabled={isPending}>
               Cancelar
@@ -205,17 +214,22 @@ function ServiceCard({
   });
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-      <div className="flex items-start justify-between gap-2">
+    <div className="bg-card border border-border rounded-xl p-5 space-y-3 flex flex-col h-full">
+      <div className="flex gap-4">
+        {service.imageUrl && (
+          <img src={service.imageUrl} alt={service.name} className="w-16 h-16 rounded-md object-cover flex-shrink-0 border border-border" />
+        )}
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold truncate">{service.name}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-sm font-semibold truncate">{service.name}</h3>
+            <Badge variant={service.active ? 'default' : 'secondary'} className="text-[10px] h-5 px-1.5 shrink-0">
+              {service.active ? 'Ativo' : 'Inativo'}
+            </Badge>
+          </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             {CATEGORY_LABELS[service.category as ServiceCategory] ?? service.category}
           </p>
         </div>
-        <Badge variant={service.active ? 'default' : 'secondary'} className="text-xs shrink-0">
-          {service.active ? 'Ativo' : 'Inativo'}
-        </Badge>
       </div>
 
       <div className="flex items-center gap-4 text-sm">

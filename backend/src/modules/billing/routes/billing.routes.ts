@@ -8,6 +8,7 @@ import {
   getStatus,
   createCheckout,
   cancelSubscription,
+  handleMercadoPagoWebhook,
 } from '../controllers/billing.controller';
 
 const router = Router();
@@ -15,6 +16,9 @@ const router = Router();
 // ─── Público ────────────────────────────────────────────────────────────────
 // GET /billing/plans — sem autenticação
 router.get('/plans', getPlans);
+
+// POST /billing/webhooks/mercadopago — webhook público
+router.post('/webhooks/mercadopago', handleMercadoPagoWebhook);
 
 
 // ─── Protegidos (apenas OWNER) ───────────────────────────────────────────────

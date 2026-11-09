@@ -37,6 +37,7 @@ const professionalSchema = z.object({
   name: z.string().min(2, 'Nome obrigatório'),
   phone: z.string().min(8, 'Telefone obrigatório'),
   bio: z.string().optional(),
+  avatarUrl: z.string().url('Deve ser um URL válido').or(z.literal('')).optional(),
 });
 
 type ProfessionalFormData = z.infer<typeof professionalSchema>;
@@ -62,7 +63,7 @@ function ProfessionalDialog({ professional, open, onClose }: ProfessionalDialogP
   } = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
     defaultValues: professional
-      ? { name: professional.name, phone: professional.phone, bio: professional.bio ?? '' }
+      ? { name: professional.name, phone: professional.phone, bio: professional.bio ?? '', avatarUrl: professional.avatarUrl ?? '' }
       : {},
   });
 
@@ -71,6 +72,7 @@ function ProfessionalDialog({ professional, open, onClose }: ProfessionalDialogP
       name: data.name,
       phone: data.phone,
       bio: data.bio || undefined,
+      avatarUrl: data.avatarUrl || undefined,
     };
 
     if (professional) {
@@ -105,6 +107,12 @@ function ProfessionalDialog({ professional, open, onClose }: ProfessionalDialogP
           <div className="space-y-1.5">
             <Label htmlFor="p-bio">Bio / Especialidades (opcional)</Label>
             <Input id="p-bio" placeholder="Especialista em coloração e corte" {...register('bio')} />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="p-avatar">URL da Foto de Perfil (opcional)</Label>
+            <Input id="p-avatar" placeholder="https://exemplo.com/foto.jpg" {...register('avatarUrl')} />
+            {errors.avatarUrl && <p className="text-xs text-destructive">{errors.avatarUrl.message}</p>}
           </div>
 
           <DialogFooter>
@@ -142,11 +150,15 @@ function ProfessionalCard({
   return (
     <div className="bg-card border border-border rounded-xl p-5">
       <div className="flex items-start gap-3">
-        <Avatar className="h-10 w-10 shrink-0">
-          <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        {professional.avatarUrl ? (
+          <img src={professional.avatarUrl} alt={professional.name} className="h-10 w-10 shrink-0 rounded-full object-cover border border-border" />
+        ) : (
+          <Avatar className="h-10 w-10 shrink-0">
+            <AvatarFallback className="text-sm font-semibold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

@@ -49,6 +49,7 @@ export const createServiceSchema = z
     desiredMarginPercent: marginSchema.optional(),
     pricingNotes: z.string().trim().max(500).optional(),
     active: z.boolean().optional(),
+    imageUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   })
   .strict();
 
@@ -66,6 +67,7 @@ export const updateServiceSchema = z
     pricingNotes: z.string().trim().max(500).optional(),
     finalPrice: priceSchema.optional(),
     active: z.boolean().optional(),
+    imageUrl: z.string().url('URL inválida').or(z.literal('')).optional(),
   })
   .strict()
   .refine(data => Object.keys(data).length > 0, {

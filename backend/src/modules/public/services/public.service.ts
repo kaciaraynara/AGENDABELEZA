@@ -33,39 +33,59 @@ export class PublicService {
       throw new NotFoundError('Serviço', 'PUBLIC_SERVICE_NOT_FOUND');
     }
 
-    const professional = await this.publicRepository.findBookableProfessionalById(
-      data.professionalId,
-      salon.id
-    );
+    let professional = null;
+    if (data.professionalId) {
+      professional = await this.publicRepository.findBookableProfessionalById(
+        data.professionalId,
+        salon.id
+      );
 
-    if (!professional) {
-      throw new NotFoundError('Profissional', 'PUBLIC_PROFESSIONAL_NOT_FOUND');
+      if (!professional) {
+        throw new NotFoundError('Profissional', 'PUBLIC_PROFESSIONAL_NOT_FOUND');
+      }
     }
 
-    const isLinked = await this.publicRepository.isProfessionalLinkedToService(
-      professional.id,
-      service.id
-    );
-
-    if (!isLinked) {
-      throw new ValidationError(
-        'Profissional não está vinculado ao serviço escolhido',
-        'PUBLIC_PROFESSIONAL_SERVICE_NOT_LINKED'
+    if (professional) {
+      const isLinked = await this.publicRepository.isProfessionalLinkedToService(
+        professional.id,
+        service.id
       );
+
+      if (!isLinked) {
+        throw new ValidationError(
+          'Profissional não está vinculado ao serviço escolhido',
+          'PUBLIC_PROFESSIONAL_SERVICE_NOT_LINKED'
+        );
+      }
     }
 
     // Nesta etapa validamos somente conflito exato de horário.
     // Sobreposição por duração entra em uma etapa futura de agenda/disponibilidade.
-    const existingAppointment = await this.publicRepository.findAppointmentByProfessionalAndScheduledAt(
-      professional.id,
-      data.scheduledAt
-    );
-
-    if (existingAppointment) {
-      throw new ConflictError(
-        'Horário já ocupado para este profissional',
-        'PUBLIC_APPOINTMENT_TIME_UNAVAILABLE'
+    if (professional) {
+      const existingAppointment = await this.publicRepository.findAppointmentByProfessionalAndScheduledAt(
+        professional.id,
+        data.scheduledAt
       );
+
+      if (existingAppointment) {
+        throw new ConflictError(
+          'Horário já ocupado para este profissional',
+          'PUBLIC_APPOINTMENT_TIME_UNAVAILABLE'
+        );
+      }
+    } else {
+      // Se não há profissional específico, verificamos se o salão já tem agendamento genérico nesse horário
+      const existingAppointment = await this.publicRepository.findAppointmentBySalonAndScheduledAtWithoutProfessional(
+        salon.id,
+        data.scheduledAt
+      );
+
+      if (existingAppointment) {
+        throw new ConflictError(
+          'Horário já ocupado no salão',
+          'PUBLIC_APPOINTMENT_TIME_UNAVAILABLE'
+        );
+      }
     }
 
     try {

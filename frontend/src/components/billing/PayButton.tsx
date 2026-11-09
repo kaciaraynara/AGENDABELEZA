@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * PayButton — Botão de assinar que dispara o checkout Stripe.
+ * PayButton — Botão de assinar que dispara o checkout no MercadoPago.
  */
 
 import { Loader2, Zap } from 'lucide-react';

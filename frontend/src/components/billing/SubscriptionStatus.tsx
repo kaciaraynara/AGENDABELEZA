@@ -110,7 +110,7 @@ export function SubscriptionStatus({ status }: SubscriptionStatusProps) {
       {/* Badge de pagamento */}
       <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
         <CreditCard size={13} />
-        <span>Pagamento processado via Stripe · SSL seguro</span>
+        <span>Pagamento processado via Mercado Pago · SSL seguro</span>
       </div>
     </div>
   );

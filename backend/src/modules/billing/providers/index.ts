@@ -2,7 +2,7 @@
 
 import { PaymentProvider } from '@prisma/client';
 import { asaasProvider } from './asaasProvider';
-import { stripeProvider } from './stripeProvider';
+import { mercadoPagoProvider } from './mercadoPagoProvider';
 
 const configuredProvider =
   process.env.PAYMENT_PROVIDER?.toUpperCase();
@@ -11,19 +11,18 @@ const configuredProvider =
  * Provider usado na criação de novas assinaturas.
  *
  * PAYMENT_PROVIDER=ASAAS  → Asaas
- * PAYMENT_PROVIDER=STRIPE → Stripe
- * Default                 → Stripe
+ * PAYMENT_PROVIDER=MERCADOPAGO → Mercado Pago
+ * Default                 → Mercado Pago
  */
 export const billingProvider =
   configuredProvider === 'ASAAS'
     ? asaasProvider
-    : stripeProvider;
+    : mercadoPagoProvider;
 
 /**
  * Retorna o provider responsável por uma assinatura existente.
  *
- * Isso evita tentar cancelar no Stripe uma assinatura criada no Asaas,
- * ou tentar cancelar no Asaas uma assinatura criada no Stripe.
+ * Isso evita tentar cancelar no Mercado Pago uma assinatura criada no Asaas, etc.
  */
 export function getBillingProvider(
   paymentProvider?: PaymentProvider | null,
@@ -32,12 +31,8 @@ export function getBillingProvider(
     return asaasProvider;
   }
 
-  if (paymentProvider === PaymentProvider.STRIPE) {
-    return stripeProvider;
-  }
-
-  // Compatibilidade com assinaturas antigas sem provider salvo.
-  return billingProvider;
+  // Compatibilidade com assinaturas antigas sem provider salvo (agora forçado para MP).
+  return mercadoPagoProvider;
 }
 
-export { asaasProvider, stripeProvider };
+export { asaasProvider, mercadoPagoProvider };
