@@ -15,7 +15,7 @@ import {
 
 const links = [
   {
-    label: 'PÃ¡gina Inicial',
+    label: 'Página Inicial',
     href: '/dashboard',
     icon: LayoutDashboard,
   },
@@ -25,7 +25,7 @@ const links = [
     icon: Calendar,
   },
   {
-    label: 'ServiÃ§os',
+    label: 'Serviços',
     href: '/servicos',
     icon: Scissors,
   },
@@ -35,12 +35,12 @@ const links = [
     icon: Users,
   },
   {
-    label: 'Meu SalÃ£o',
+    label: 'Meu Salão',
     href: '/meu-salao',
     icon: Store,
   },
   {
-    label: 'PÃ¡gina PÃºblica',
+    label: 'Página Pública',
     href: '/salao',
     icon: Store,
   },
@@ -68,7 +68,7 @@ export function Sidebar() {
           const { salon } = useAuth();
           
           let href = link.href;
-          if (link.label === 'PÃ¡gina PÃºblica' && salon?.slug) {
+          if (link.label === 'Página Pública' && salon?.slug) {
             href = `/salao/${salon.slug}`;
           }
 

@@ -3,7 +3,6 @@ import Link from 'next/link';
 export default function PaginaInicial() {
   return (
     <div className="min-h-screen bg-white text-[#1E1624] flex flex-col font-sans antialiased selection:bg-[#EFE8F4] selection:text-[#4B2C5E]">
-      {/* Navegacao Superior Minimalista */}
       <header className="w-full bg-white/95 backdrop-blur-sm border-b border-[#EAE2F0] sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E1624]">
@@ -39,9 +38,7 @@ export default function PaginaInicial() {
         </div>
       </header>
 
-      {/* Hero Section com Fundo Branco e Detalhes Minimalistas */}
       <section className="relative overflow-hidden pt-20 sm:pt-24 pb-16 px-5 sm:px-8 bg-white">
-        {/* Detalhe minimalista de pontos suaves no fundo */}
         <div
           className="absolute inset-0 pointer-events-none opacity-45"
           style={{
@@ -49,7 +46,6 @@ export default function PaginaInicial() {
             backgroundSize: '28px 28px',
           }}
         />
-        {/* Linhas finas decorativas minimalistas */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-[#D9CDE3] to-transparent pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
 
@@ -79,10 +75,8 @@ export default function PaginaInicial() {
         </div>
       </section>
 
-      {/* Cards Demonstrativos */}
       <section id="demonstracao" className="relative py-12 px-5 sm:px-8 max-w-5xl mx-auto w-full">
         <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
-          {/* Card 1: Vitrine da Cliente */}
           <div className="lg:col-span-5 bg-white border border-[#EAE2F0] rounded-2xl p-6 shadow-[0_2px_16px_rgba(94,58,115,0.04)] hover:border-[#C8B6D6] transition-all duration-300 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#F6F2F9]">
@@ -142,7 +136,6 @@ export default function PaginaInicial() {
             </div>
           </div>
 
-          {/* Card 2: Painel do Salao */}
           <div className="lg:col-span-7 bg-white border border-[#EAE2F0] rounded-2xl p-6 shadow-[0_2px_16px_rgba(94,58,115,0.04)] hover:border-[#C8B6D6] transition-all duration-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-5 border-b border-[#F6F2F9]">
               <div>
@@ -213,7 +206,6 @@ export default function PaginaInicial() {
         </div>
       </section>
 
-      {/* Como funciona */}
       <section id="como-funciona" className="py-16 px-5 sm:px-8 bg-[#FAF7FC] border-y border-[#EAE2F0]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
@@ -255,7 +247,6 @@ export default function PaginaInicial() {
         </div>
       </section>
 
-      {/* Planos */}
       <section id="planos" className="py-16 sm:py-20 px-5 sm:px-8 max-w-4xl mx-auto w-full">
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-bold text-[#1E1624] mb-2">Planos transparentes</h2>
@@ -314,7 +305,6 @@ export default function PaginaInicial() {
         </div>
       </section>
 
-      {/* Rodape */}
       <footer className="mt-auto py-8 px-6 bg-[#FAF7FC] border-t border-[#EAE2F0] text-xs text-[#6B5E75]">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>
