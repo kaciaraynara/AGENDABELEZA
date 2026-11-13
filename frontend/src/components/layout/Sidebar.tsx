@@ -82,8 +82,8 @@ export function Sidebar() {
                 flex items-center gap-3 rounded-xl px-4 py-3
                 transition-all duration-200
                 ${active
-                  ? 'bg-[#FAF8F5] text-[#C8A96B]'
-                  : 'text-[#555] hover:bg-[#FAF8F5]'
+                  ? 'bg-[#FFFFFF] text-[#C8A96B]'
+                  : 'text-[#555] hover:bg-[#FFFFFF]'
                 }
               `}
             >
